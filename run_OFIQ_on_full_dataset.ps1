@@ -14,7 +14,7 @@ $sub_directories = Get-ChildItem -Path $dir_path -Directory
 Set-Location -Path "C:\\Users\\admin\\source\\repos\\OFIQ-Project-FGFP\\install_x86_64\\Release\\bin"
 
 
-$max_processes = 4
+$max_processes = 1
 $process_count = 0
 
 function Get-RunningProcesses {
@@ -33,8 +33,7 @@ foreach ($sub_dir in $sub_directories) {
     $running_processes_count = Get-RunningProcesses
 
     while (-Not ($running_processes_count -lt $max_processes)) {
-        Write-Output "Maximum number of processes ($max_processes) reached. Waiting for a process to finish..."
-        Start-Sleep -Seconds 15
+        Start-Sleep -Seconds 5
         $running_processes_count = Get-RunningProcesses
     }
     
