@@ -19,26 +19,44 @@ def create_image_with_blacked_out_region(original_img, face_parsing_mask, region
 
 
 # aligned_images_directory_path = "C:\\Users\\admin\\Desktop\\aligned-test"
-# aligned_images_directory_path = "C:\\Users\\admin\\Desktop\\aligned-VGGFace200k-folders-50-images"
+aligned_images_directory_path = "C:\\Users\\admin\\Desktop\\aligned-VGGFace200k-folders-50-images"
 # aligned_images_directory_path = "C:\\Users\\admin\\Desktop\\aligned-VGGFace200k-folders-50-images-first-quarter"
 # aligned_images_directory_path = "C:\\Users\\admin\\Desktop\\aligned-VGGFace200k-folders-50-images-second-quarter"
 # aligned_images_directory_path = "C:\\Users\\admin\\Desktop\\aligned-VGGFace200k-folders-50-images-third-quarter"
-aligned_images_directory_path = "C:\\Users\\admin\\Desktop\\aligned-VGGFace200k-folders-50-images-fourth-quarter"
+# aligned_images_directory_path = "C:\\Users\\admin\\Desktop\\aligned-VGGFace200k-folders-50-images-fourth-quarter"
 # face_parsing_masks_directory_path = "C:\\Users\\admin\\Desktop\\face-parsing-test"
 face_parsing_masks_directory_path = "C:\\Users\\admin\\source\\repos\\OFIQ-Project-FGFP\\install_x86_64\\Release\\bin\\face_parsing_images"
 
 blackout_images_path_base = "C:\\Users\\admin\\Desktop\\blackout-aligned-VGGFace200k-50-images"
+# blackout_images_path_base = "C:\\Users\\admin\\Desktop\\blackout-aligned-VGGFace200k-50-images-Existing-regions"
+# blackout_images_path_base = "C:\\Users\\admin\\Desktop\\test-blackout-existing-regions"
+
+
+# region_class_dictionary = {
+#     "Nasal" : 20,
+#     "LeftOrbital" : 21,
+#     "RightOrbital" : 22,
+#     "Mental" : 23,
+#     "LeftBuccal" : 24,
+#     "RightBuccal" : 25,
+#     "LeftZygoInfraParo" : 26,
+#     "RightZygoInfraParo" : 27
+# }
+
 
 region_class_dictionary = {
-    "Nasal" : 20,
-    "LeftOrbital" : 21,
-    "RightOrbital" : 22,
-    "Mental" : 23,
-    "LeftBuccal" : 24,
-    "RightBuccal" : 25,
-    "LeftZygoInfraParo" : 26,
-    "RightZygoInfraParo" : 27
+    "LeftEyeBrow" : 2,
+    "RightyeBrow" : 3,
+    "LeftEye" : 4,
+    "RightEye" : 5,
+    "Nose" : 10,
+    "Mouth" : 11,
+    "UpperLip" : 12,
+    "LowerLip" : 13
 }
+
+
+
 
 region_pixel_count_dictionary = {} # will store the number of pixels in the blacked out region in each blacked out image
 for root, dirs, aligned_images_filenames in os.walk(aligned_images_directory_path):
@@ -57,7 +75,7 @@ for root, dirs, aligned_images_filenames in os.walk(aligned_images_directory_pat
         original_img_path = os.path.join(root, image_filename)
         original_img = cv2.imread(original_img_path) # should have size 222x222 when face parsing image has size 200x200
 
-        face_parsing_filename = image_filename.replace("aligned", "face_parsing")
+        face_parsing_filename = image_filename.replace("aligned", "nearest_face_parsing")
         face_parsing_filename = face_parsing_filename.replace(".jpg", ".png")
         face_parsing_mask_path = os.path.join(face_parsing_masks_directory_path, face_parsing_filename)
         face_parsing_mask_gray = cv2.imread(face_parsing_mask_path, cv2.IMREAD_GRAYSCALE) # Assumed to have size 200x200
@@ -82,7 +100,7 @@ for root, dirs, aligned_images_filenames in os.walk(aligned_images_directory_pat
             region_pixel_count_dictionary[person_directory_name][blackout_img_save_path] = region_pixel_count
 
 # TODO: Not tested yet
-region_pixel_count_output_file = "./output_files/region_pixel_count.csv"
+region_pixel_count_output_file = "./output_files/region_pixel_count-Existing-regions.csv"
 with open(region_pixel_count_output_file, 'w', newline='') as output_csv:
     writer = csv.writer(output_csv, delimiter=';')
     for person, blackout_images_dictionary in region_pixel_count_dictionary.items():
