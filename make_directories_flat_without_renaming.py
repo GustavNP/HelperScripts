@@ -3,8 +3,12 @@ import shutil
 
 
 
-input_root = "C:\\Users\\admin\\Desktop\\blackout-aligned-VGGFace200k-50-images"
-output_root = "C:\\Users\\admin\\Desktop\\blackout-aligned-VGGFace200k-folders-50-images-flat-identity-folders"
+# input_root = "C:\\Users\\admin\\Desktop\\blackout-aligned-VGGFace200k-50-images"
+# output_root = "C:\\Users\\admin\\Desktop\\blackout-aligned-VGGFace200k-folders-50-images-flat-identity-folders"
+
+input_root = "C:\\Users\\admin\\Desktop\\blackout-aligned-VGGFace200k-50-images-Existing-regions"
+output_root = "C:\\Users\\admin\\Desktop\\blackout-aligned-VGGFace200k-50-images-Existing-regions-flat-identity-folders"
+
 
 
 if not os.path.exists(output_root):
@@ -17,7 +21,7 @@ for root, dirs, files in os.walk(input_root):
         if counter % 100 == 0:
             print(f"Files copied: {counter}. Now copying {file}")
             
-        output_directory_name = file.split("_")[1].split('-')[0] # assumes filename structure "aligned_<<person>-<and-more>>_something.jpg"
+        output_directory_name = root.split("\\")[-2]
         output_directory_path = os.path.join(output_root, output_directory_name)
 
         if not os.path.exists(output_directory_path):

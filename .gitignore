@@ -3,3 +3,13 @@
 /blackout_images/
 /tf_gpu_python38/
 /output_files/
+/average_blackout_region_scores/
+/average_deviation_from_original_scores/
+/average_deviation_per_pixel_per_image/
+/deviation_blackout_region_scores/
+/distribution_plots/
+/embedding-files-25-percent-of-train-set/
+/embedding-files-50-images/
+/embedding-files-test-set/
+/number_of_images_with_no_pixels_per_region/
+/other-files/

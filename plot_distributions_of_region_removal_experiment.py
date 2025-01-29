@@ -2,16 +2,6 @@ import os
 import pandas as pd
 import csv
 import cv2
-import matplotlib.pyplot as plt
-import seaborn as sns
-
-
-# =========== TODO: CONSIDER THIS ==========
-# Okay, I'm going to keep this here for now, but the non-absolute deviation is just the average of the originals minus the average of the blacked out region,
-# so very easy to calculate and not really providing any new value.
-# Earlier thought: "Right now, we only compute the average absolute deviation. This only tells us the deviation, not in which direction.
-# Computing the average deviation (not absolute) would give us insight into the average direction."
-# ==========================================
   
 def convert_blackout_filename_to_original_filename(filename):
     split_filename = filename.split('_Blackout')
@@ -59,17 +49,12 @@ region_averages_dictionary = { "Originals" : average_UQS_originals }
 region_deviations_averages_dictionary = { "Originals" : 0.0 }
 region_average_deviation_per_pixel_per_image_dictionary = { "Originals" : 0.0 }
 region_number_of_images_with_0_pixels_dictionary = { "Originals" : 0 }
-uqs_dataframe_dictionary = { "Originals" : originals_df["UnifiedQualityScore.scalar"] }
-deviation_dataframe_dictionary = {}
-absolute_deviation_dataframe_dictionary = {}
-abs_dev_per_img_per_pixel_dataframe_dictionary = {}
 for region in region_names:
     blackout_region_UQS_scores_df = score_df[score_df["Filename"].apply(lambda filename: f"{region}." in filename)] # ends with region
     # print(len(blackout_region_UQS_scores_df))
     # print(blackout_region_UQS_scores_df)
-    
 
-    # ========= Only consider regions where the region was actually identified, so there are >0 pixels ==========
+    # Only consider regions where the region was actually identified, so there are >0 pixels.
     blackout_region_UQS_scores_and_pixel_count_df = pd.merge(blackout_region_UQS_scores_df, region_pixel_count_df, on='Filename', how='left')
     missing_pixel_counts = blackout_region_UQS_scores_and_pixel_count_df["pixel_count"].isnull().sum()
     # print(f"Missing pixel counts for {region}: {missing_pixel_counts}")
@@ -77,9 +62,7 @@ for region in region_names:
     # print(f"Number of images where pixel count is 0 for {region}: {no_of_images_with_0_pixels}")
     region_number_of_images_with_0_pixels_dictionary[region] = no_of_images_with_0_pixels
 
-
-
-    # ========== Remove rows that have 0 pixels in regions ==========
+    # Remove rows that have 0 pixels in regions
     blackout_region_UQS_scores_and_pixel_count_with_more_than_0_pixels_df = blackout_region_UQS_scores_and_pixel_count_df[~(blackout_region_UQS_scores_and_pixel_count_df["pixel_count"] == 0)]
     print(len(blackout_region_UQS_scores_and_pixel_count_with_more_than_0_pixels_df))
     blackout_region_UQS_scores_df = blackout_region_UQS_scores_and_pixel_count_with_more_than_0_pixels_df[blackout_region_UQS_scores_df.columns]
@@ -90,147 +73,41 @@ for region in region_names:
     originals_of_non_zero_images_df = originals_df[originals_df["Filename"].apply(lambda filename: filename in original_filenames_of_blackout_images_dict_for_lookup)]
     # print(len(originals_of_non_zero_images_df))
 
-
-
-    # ========== Compute KDE plot for UQS of the non-zero blackout images ==========
-    # blackout_region_UQS_scores_df.hist(column='UnifiedQualityScore.scalar', bins=50, rwidth=0.8)
-    # plt.yscale("log")
-    uqs_dataframe_dictionary[region] = blackout_region_UQS_scores_df["UnifiedQualityScore.scalar"]
-    # blackout_region_UQS_scores_df["UnifiedQualityScore.scalar"].plot.kde()
-    ax = sns.kdeplot(blackout_region_UQS_scores_df["UnifiedQualityScore.scalar"], fill=True, label=region)
-    ax.legend()
-    plt.savefig(f"./distribution_plots/average_UQS/average_UQS_non_zero_images_{region}.png")
-    plt.clf()
-
     #blackout_region_UQS_scores_weird_values_df = blackout_region_UQS_scores_df[blackout_region_UQS_scores_df["UnifiedQualityScore.scalar"].apply(lambda x: x < 0)]
     #print(len(blackout_region_UQS_scores_weird_values_df))
     average_UQS = blackout_region_UQS_scores_df["UnifiedQualityScore.scalar"].mean()
     print(f"Average score for images with {region} region blacked out: {average_UQS}")
     region_averages_dictionary[region] = average_UQS
 
-
-    # ========== Compute deviations from original ==========
-    deviation_from_original_series = originals_of_non_zero_images_df["UnifiedQualityScore.scalar"] - blackout_region_UQS_scores_df["UnifiedQualityScore.scalar"].values
-    # deviation_from_original_df.hist(bins=50, rwidth=0.8)
-    # plt.yscale("log")
-    deviation_dataframe_dictionary[region] = deviation_from_original_series
-    # deviation_from_original_series.plot.kde()
-    ax = sns.kdeplot(deviation_from_original_series, fill=True, label=region)
-    ax.legend()
-    plt.savefig(f"./distribution_plots/deviations_from_original/deviations_from_original_{region}.png")
-    plt.clf()
+    # Compute deviations from original
+    deviation_from_original_df = originals_of_non_zero_images_df["UnifiedQualityScore.scalar"] - blackout_region_UQS_scores_df["UnifiedQualityScore.scalar"].values
     #print(deviation_from_original_df.head())
     #print(blackout_region_UQS_scores_df.dtypes)
-    
+    deviation_from_original_absolute_df = deviation_from_original_df.abs()
 
-    # ========== Compute absolute deviations ==========
-    deviation_from_original_absolute_series = deviation_from_original_series.abs()
-    # deviation_from_original_absolute_df.hist(bins=50, rwidth=0.8)
-    # plt.yscale("log")
-    absolute_deviation_dataframe_dictionary[region] = deviation_from_original_absolute_series
-    # deviation_from_original_absolute_series.plot.kde()
-    ax = sns.kdeplot(deviation_from_original_absolute_series, fill=True, label=region)
-    ax.legend()
-    plt.savefig(f"./distribution_plots/absolute_deviations_from_original/absolute_deviations_from_original_{region}.png")
-    plt.clf()
-
-
-    # ========== Compute average deviation from original ==========
-    average_absolute_deviation_from_original_UQS = deviation_from_original_absolute_series.mean()
+    # Compute average deviation from original
+    average_absolute_deviation_from_original_UQS = deviation_from_original_absolute_df.mean()
     region_deviations_averages_dictionary[region] = average_absolute_deviation_from_original_UQS
     print(f"Average (absolute) deviation from original for images with {region} blacked out: {average_absolute_deviation_from_original_UQS}")
 
-
-    # ========== Save blacked out image deviations from original images ==========
-    deviations_from_original_with_filename_df = pd.concat([blackout_region_UQS_scores_df["Filename"].reset_index(drop=True), deviation_from_original_series.reset_index(drop=True)], axis=1, ignore_index=True)
+    # Save blacked out image deviations from original images
+    deviations_from_original_with_filename_df = pd.concat([blackout_region_UQS_scores_df["Filename"].reset_index(drop=True), deviation_from_original_df.reset_index(drop=True)], axis=1, ignore_index=True)
     #print(deviations_from_original_with_filename_df.head())
     deviations_from_original_with_filename_df.to_csv(f"./deviation_blackout_region_scores/VGGFace200k-50-images-region_UQS_deviation_from_original-{region}2.csv")
 
-
-    # ========== Compute average deviation per pixel per image ==========
-    absolute_deviations_df = pd.concat([blackout_region_UQS_scores_df["Filename"].reset_index(drop=True), deviation_from_original_absolute_series.reset_index(drop=True)], axis=1, ignore_index=True)
+    # Compute average deviation per pixel per image
+    absolute_deviations_df = pd.concat([blackout_region_UQS_scores_df["Filename"].reset_index(drop=True), deviation_from_original_absolute_df.reset_index(drop=True)], axis=1, ignore_index=True)
     absolute_deviations_df.columns = ["Filename", "UQSDeviationFromOriginal"]
     absolute_deviations_df["Filename"] = absolute_deviations_df["Filename"].apply(lambda x: x.split("/")[-1]) # only keep actual filename, not full path
     # print(absolute_deviations_and_pixel_count_df)
     absolute_deviations_and_pixel_count_df = pd.merge(absolute_deviations_df, region_pixel_count_df, on='Filename', how='left')
-    deviation_per_pixel_series = absolute_deviations_and_pixel_count_df["UQSDeviationFromOriginal"].div(absolute_deviations_and_pixel_count_df["pixel_count"], axis=0)
-    
-    # deviation_per_pixel_df.hist(bins=50, rwidth=0.8)
-    # plt.yscale("log")
-    abs_dev_per_img_per_pixel_dataframe_dictionary[region] = deviation_per_pixel_series
-    # deviation_per_pixel_series.plot.kde()
-    ax = sns.kdeplot(deviation_per_pixel_series, fill=True, label=region)
-    ax.legend()
-    plt.xlim((0, 1))
-    plt.savefig(f"./distribution_plots/absolute_deviation_per_pixel_per_image/absolute_deviation_per_pixel_per_image_{region}.png")
-    plt.clf()
-
+    deviation_per_pixel_df = absolute_deviations_and_pixel_count_df["UQSDeviationFromOriginal"].div(absolute_deviations_and_pixel_count_df["pixel_count"], axis=0)
     # print(deviation_per_pixel_df.head())
-    average_deviation_per_pixel_per_image = deviation_per_pixel_series.mean()
+    average_deviation_per_pixel_per_image = deviation_per_pixel_df.mean()
     region_average_deviation_per_pixel_per_image_dictionary[region] = average_deviation_per_pixel_per_image
     print(f"Average deviation per pixel per image for images with {region} blacked out: {average_deviation_per_pixel_per_image}")
 
 
-
-
-
-
-
-
-# ======== Plot kde plots in same figure ========
-# Legends issue:
-# https://github.com/mwaskom/seaborn/issues/2994
-
-for region, data in uqs_dataframe_dictionary.items():
-    ax = sns.kdeplot(data, label=region)
-plt.xlabel("UQS")
-ax.legend()
-plt.legend(loc='upper left', bbox_to_anchor=(1, 1))
-plt.title("Unified Quality Score")
-plt.subplots_adjust(right=0.67) # get labels to not be cut off
-plt.savefig(f"./distribution_plots/average_UQS/average_UQS_non_zero_images_ALL.png")
-plt.show()
-
-for region, data in deviation_dataframe_dictionary.items():
-    ax = sns.kdeplot(data, label=region)
-plt.xlabel("Deviation in UQS")
-ax.legend()
-plt.legend(loc='upper left', bbox_to_anchor=(1, 1))
-plt.title("Deviation from Original UQS")
-plt.subplots_adjust(right=0.67) # get labels to not be cut off
-plt.savefig(f"./distribution_plots/deviations_from_original/deviations_from_original_ALL.png")
-plt.show()
-
-for region, data in absolute_deviation_dataframe_dictionary.items():
-    ax = sns.kdeplot(data, label=region)
-plt.xlabel("Absolute Deviation in UQS")
-ax.legend()
-plt.legend(loc='upper left', bbox_to_anchor=(1, 1))
-plt.title("Absolute Deviation from Original UQS")
-plt.subplots_adjust(right=0.67) # get labels to not be cut off
-plt.savefig(f"./distribution_plots/absolute_deviations_from_original/absolute_deviations_from_original_ALL.png")
-plt.show()
-
-for region, data in abs_dev_per_img_per_pixel_dataframe_dictionary.items():
-    ax = sns.kdeplot(data, label=region)
-plt.xlim((0.0, 0.5))
-plt.xlabel("Average Absolute Deviation in UQS per Pixel")
-ax.legend()
-plt.legend(loc='upper left', bbox_to_anchor=(1, 1))
-plt.title("Average Absolute Deviation in UQS per Pixel per Image")
-plt.subplots_adjust(right=0.67) # get labels to not be cut off
-plt.savefig(f"./distribution_plots/absolute_deviation_per_pixel_per_image/absolute_deviation_per_pixel_per_image_ALL.png")
-plt.show()
-
-
-
-
-
-
-
-
-
-# ========= Save files with averages =============
 
 output_file = "./average_blackout_region_scores/VGGFace200k-50-images-average_blackout_region_scores2.csv"
 with open(output_file, 'w', newline='') as output_csv:

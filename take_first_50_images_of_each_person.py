@@ -1,8 +1,12 @@
 import os
 import shutil
 
-input_root = "C:\\Users\\admin\\Desktop\\aligned-VGGFace200k-folders"
-output_root = "C:\\Users\\admin\\Desktop\\aligned-VGGFace200k-folders-50-images"
+# input_root = "C:\\Users\\admin\\Desktop\\aligned-VGGFace200k-folders"
+# output_root = "C:\\Users\\admin\\Desktop\\aligned-VGGFace200k-folders-50-images"
+
+input_root = "C:\\Users\\admin\\Downloads\\archive1\\val"
+output_root = "C:\\Users\\admin\\Downloads\\archive1\\train-50-images"
+
 
 if not os.path.exists(output_root):
     os.makedirs(output_root)

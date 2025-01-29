@@ -25,7 +25,7 @@ foreach ($sub_dir in $sub_directories) {
     Write-Host "Directory reached: $($sub_dir.FullName)"
     $ofiq_command = ".\\OFIQSampleApp"
     
-    # Compute UQS and CQMs
+    # # Compute UQS and CQMs
     # $arguments = @(
     #     "-c ..\\..\\..\\data\\"
     #     "-i $($sub_dir.FullName)"
@@ -36,7 +36,7 @@ foreach ($sub_dir in $sub_directories) {
     $arguments = @(
         "-c ..\\..\\..\\data\\ofiq_config_UQS_only.jaxn"
         "-i $($sub_dir.FullName)"
-        "-o .\score_files\$($sub_dir.Name)-blackout-UQS-scores.csv"
+        "-o .\score_files\$($sub_dir.Name)-Existing-Regions-blackout-UQS-scores.csv"
     )
 
     $running_processes_count = Get-RunningProcesses
