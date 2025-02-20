@@ -5,7 +5,7 @@ import cv2
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-
+# Author: Gustav Nilsson Pedersen - s174562@student.dtu.dk
   
 def convert_blackout_filename_to_original_filename(filename):
     split_filename = filename.split('_Blackout')
